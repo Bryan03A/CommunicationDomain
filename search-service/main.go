@@ -49,7 +49,7 @@ func init() {
 	log.Println("✅ Conectado a MongoDB correctamente")
 }
 
-// searchModelHandler maneja la búsqueda de modelos en MongoDB
+// searchModelHandler maneja la búsqueda de modelos en MongoDBa
 func searchModelHandler(w http.ResponseWriter, r *http.Request) {
 	queryParams := r.URL.Query()
 	name := queryParams.Get("name")
