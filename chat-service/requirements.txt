@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+motor
+websockets
+python-socketio
+fastapi-socketio
+requests
