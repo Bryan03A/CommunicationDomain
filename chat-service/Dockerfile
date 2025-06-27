@@ -14,5 +14,8 @@ COPY . /app/
 # Expose the port on which the service will run
 EXPOSE 5010
 
+# Copy the .env file
+COPY .env /app/
+
 # Command to run the service
 CMD ["python", "app.py"]

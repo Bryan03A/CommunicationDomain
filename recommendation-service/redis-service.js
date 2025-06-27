@@ -1,49 +1,50 @@
+require("dotenv").config(); // ✅ Cargar variables del .env
+
 const express = require("express");
 const { createClient } = require("redis");
-const cors = require("cors");
+//const cors = require("cors");
 
 const app = express();
 const port = 5006;
 
-// Configurar Redis con credenciales en la nube
+// Configurar Redis desde .env
 const redisClient = createClient({
-    username: "default",
-    password: "TD0nSdyb1joTFrilTfO5xZ2L6rmFqvNp",
+    username: process.env.REDIS_USERNAME || undefined,
+    password: process.env.REDIS_PASSWORD || undefined,
     socket: {
-        host: "redis-15780.c14.us-east-1-2.ec2.redns.redis-cloud.com",
-        port: 15780
+        host: process.env.REDIS_HOST,
+        port: Number(process.env.REDIS_PORT)
     }
 });
 
-// Conectar a Redis con manejo de errores
+// Conectar a Redis
 (async () => {
     try {
         await redisClient.connect();
-        console.log("✅ Conectado a Redis Cloud");
+        console.log("✅ Conectado a Redis");
     } catch (err) {
         console.error("❌ Error al conectar a Redis:", err);
     }
 })();
 
-// Middleware para manejar errores de Redis
+// Manejar errores de Redis
 redisClient.on("error", (err) => console.error("❌ Redis Error:", err));
 
 // Configurar CORS
-app.use(cors({
-    origin: "*",  // Permitir solicitudes de cualquier origen
-    methods: ["GET", "POST"],
-    allowedHeaders: ["Content-Type", "Authorization"]
-}));
+//app.use(cors({
+//    origin: "*",
+//    methods: ["GET", "POST"],
+//    allowedHeaders: ["Content-Type", "Authorization"]
+//}));
 
-// Configurar el body parser
 app.use(express.json());
 
-// Ruta de Health Check
+// Health Check
 app.get("/health", (req, res) => {
     res.status(200).send("Healthy");
 });
 
-// Guardar búsqueda en Redis para un usuario específico
+// Guardar búsqueda
 app.post("/save-search", async (req, res) => {
     const { query, creator, username, firstModelName } = req.body;
 
@@ -68,7 +69,7 @@ app.post("/save-search", async (req, res) => {
     }
 });
 
-// Obtener las últimas búsquedas guardadas en Redis para un usuario específico
+// Obtener búsquedas recientes
 app.get("/recent-searches", async (req, res) => {
     const { username } = req.query;
 
@@ -88,7 +89,7 @@ app.get("/recent-searches", async (req, res) => {
     }
 });
 
-// Iniciar el servidor en todas las interfaces
+// Iniciar servidor
 app.listen(port, '0.0.0.0', () => {
-    console.log(`Servidor Redis-Service escuchando en http://34.200.3.211:${port}`);
+    console.log(`🚀 Servidor Redis-Service escuchando en http://0.0.0.0:${port}`);
 });

@@ -16,5 +16,8 @@ COPY . .
 # Exponemos el puerto 5005 para que el contenedor sea accesible desde fuera
 EXPOSE 5005
 
+# Copy the .env file
+COPY .env /app/
+
 # Ejecutamos el servidor
 CMD ["go", "run", "main.go"]

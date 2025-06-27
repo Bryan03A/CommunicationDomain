@@ -4,15 +4,25 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from typing import Dict, List
 import json
 import requests
+import os
+from dotenv import load_dotenv
 
-# Configuración de la base de datos MongoDB Atlas
-MONGO_URL = "mongodb+srv://MicroserviceDev:1997999@cluster0.hdqpd.mongodb.net/CatalogServiceDB?retryWrites=true&w=majority"
-client = AsyncIOMotorClient(MONGO_URL)
-db = client["ChatServiceDB"]
+# Cargar variables del .env
+load_dotenv()
+
+# Leer la URI desde el .env
+MONGO_URI = os.getenv("MONGO_URI")
+client = AsyncIOMotorClient(MONGO_URI)
+
+# Seleccionar la base de datos y colección
+db = client["CatalogServiceDB"]
 chats_collection = db["chats"]
 
+# También puedes acceder a SECRET_KEY si lo necesitas
+SECRET_KEY = os.getenv("SECRET_KEY")
+
 # URL del servicio de búsqueda de usuarios (user-search-service)
-USER_SEARCH_URL = "http://34.200.3.211:5016/user/soap"
+USER_SEARCH_URL = "http://54.243.94.215/user-search/user/soap"
 
 app = FastAPI()
 

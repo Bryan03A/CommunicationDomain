@@ -5,3 +5,4 @@ websockets
 python-socketio
 fastapi-socketio
 requests
+python-dotenv
