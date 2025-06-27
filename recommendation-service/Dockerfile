@@ -20,4 +20,4 @@ COPY .env /app/
 EXPOSE 5006
 
 # Comando para arrancar la app
-CMD ["node", "index.js"]
+CMD ["node", "redis-service.js"]
