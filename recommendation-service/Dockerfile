@@ -1,21 +1,23 @@
-# Use a base image with Node.js
-FROM node:16-alpine
+# Usar imagen oficial de Node.js
+FROM node:18-alpine
 
-# Set the working directory
+# Establecer directorio de trabajo dentro del contenedor
 WORKDIR /app
 
-# Copy the package.json file and install dependencies
-COPY package.json /app/
-RUN npm install
+# Copiar package.json y package-lock.json (si tienes)
+COPY package*.json ./
 
-# Copy the source code of the microservice
-COPY . /app/
+# Instalar dependencias
+RUN npm install --production
 
-# Expose the port on which the service will run
-EXPOSE 5006
+# Copiar todo el código fuente al contenedor
+COPY . .
 
 # Copy the .env file
 COPY .env /app/
 
-# Command to run the service
-CMD ["node", "redis-service.js"]
+# Exponer el puerto donde corre la app
+EXPOSE 5006
+
+# Comando para arrancar la app
+CMD ["node", "index.js"]
