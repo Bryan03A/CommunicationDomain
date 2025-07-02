@@ -12,7 +12,15 @@ load_dotenv()
 
 # Leer la URI desde el .env
 MONGO_URI = os.getenv("MONGO_URI")
-client = AsyncIOMotorClient(MONGO_URI)
+
+# Intentar conectar a MongoDB y verificar con ping
+try:
+    client = AsyncIOMotorClient(MONGO_URI)
+    client.admin.command("ping")
+    print("✅ Conexión a MongoDB exitosa")
+except Exception as e:
+    print(f"❌ Error al conectar a MongoDB: {e}")
+    raise e  # Detener el arranque si no hay conexión
 
 # Seleccionar la base de datos y colección
 db = client["CatalogServiceDB"]
@@ -36,14 +44,14 @@ async def get_chat_id(user1: str, user2: str) -> str:
 
 def user_exists(username: str) -> bool:
     """ Verifica si un usuario existe consultando el servicio SOAP de búsqueda de usuarios """
-    # Realizar la solicitud SOAP
-    response = requests.get(USER_SEARCH_URL, params={"username": username})
-
-    # Si la respuesta no es exitosa o no se encuentra el usuario, retornar False
-    if response.status_code != 200 or "Usuario no encontrado" in response.text:
+    try:
+        response = requests.get(USER_SEARCH_URL, params={"username": username})
+        if response.status_code != 200 or "Usuario no encontrado" in response.text:
+            return False
+        return True
+    except Exception as e:
+        print(f"❌ Error al consultar user-search-service: {e}")
         return False
-
-    return True
 
 @app.websocket("/ws/{user1}/{user2}")
 async def websocket_endpoint(websocket: WebSocket, user1: str, user2: str):
@@ -70,16 +78,16 @@ async def websocket_endpoint(websocket: WebSocket, user1: str, user2: str):
     previous_messages = await chats_collection.find_one({"chat_id": chat_id})
     if previous_messages:
         for message in previous_messages["messages"]:
-            await websocket.send_json({"sender": message["sender"], "text": message["text"]})  # ✅ Enviar correctamente
+            await websocket.send_json({"sender": message["sender"], "text": message["text"]})
 
     try:
         while True:
-            data = await websocket.receive_text()  # Recibir mensaje en formato string
-            message_json = json.loads(data)  # ✅ Convertir string JSON a diccionario
+            data = await websocket.receive_text()
+            message_json = json.loads(data)
             
-            message = {"sender": message_json["sender"], "text": message_json["text"]}  # ✅ Guardar correctamente
+            message = {"sender": message_json["sender"], "text": message_json["text"]}
 
-            # Guardar en la base de datos sin anidar el JSON dentro de una cadena
+            # Guardar en la base de datos
             await chats_collection.update_one(
                 {"chat_id": chat_id},
                 {"$push": {"messages": message}},
@@ -88,18 +96,14 @@ async def websocket_endpoint(websocket: WebSocket, user1: str, user2: str):
 
             # Enviar mensaje a todos los usuarios en el chat
             for connection in active_chats[chat_id]:
-                if connection != websocket:  # Evitar enviar el mensaje al emisor
-                    await connection.send_json(message)  # ✅ Enviar como JSON
+                if connection != websocket:
+                    await connection.send_json(message)
 
     except WebSocketDisconnect:
-        # Eliminar la conexión cuando se desconecta
         active_chats[chat_id].remove(websocket)
-        
-        # Si no quedan conexiones en este chat, eliminar el chat
         if not active_chats[chat_id]:
             del active_chats[chat_id]
-        
-        await websocket.close()  # Cerrar la conexión WebSocket
+        await websocket.close()
     except Exception as e:
         print(f"Error en WebSocket: {e}")
         await websocket.close()
