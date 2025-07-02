@@ -90,13 +90,18 @@ func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/search", searchModelHandler).Methods("GET")
 
+	/*
 	corsHandler := cors.New(cors.Options{
 		AllowedOrigins:   []string{"http://3.227.120.143:8080"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE"},
 		AllowedHeaders:   []string{"Content-Type"},
 		AllowCredentials: true,
 	})
+	*/
 
 	fmt.Println("🚀 Microservicio de búsqueda iniciado en puerto 5005...")
-	log.Fatal(http.ListenAndServe("0.0.0.0:5005", corsHandler.Handler(r)))
+	// Use the router directly without CORS
+	log.Fatal(http.ListenAndServe("0.0.0.0:5005", r))
+	// To use CORS, uncomment the following line and comment out the one above:
+	// log.Fatal(http.ListenAndServe("0.0.0.0:5005", corsHandler.Handler(r)))
 }
