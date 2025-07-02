@@ -10,7 +10,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
-	"github.com/rs/cors"
+	// "github.com/rs/cors"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -101,7 +101,7 @@ func main() {
 
 	fmt.Println("🚀 Microservicio de búsqueda iniciado en puerto 5005...")
 	// Use the router directly without CORS
-	log.Fatal(http.ListenAndServe("0.0.0.0:5005", corsHandler.Handler(r)))
+	log.Fatal(http.ListenAndServe("0.0.0.0:5005", r))
 	// To use CORS, uncomment the following line and comment out the one above:
 	// log.Fatal(http.ListenAndServe("0.0.0.0:5005", corsHandler.Handler(r)))
 }
