@@ -7,7 +7,7 @@ import requests
 import os
 from dotenv import load_dotenv
 
-# Cargar variables del .env
+# Cargar variables del .enva
 load_dotenv()
 
 # Leer la URI desde el .env
