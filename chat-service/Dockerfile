@@ -18,4 +18,4 @@ EXPOSE 5010
 COPY .env /app/
 
 # Command to run the service
-CMD ["python", "app.py"]
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "5010"]
