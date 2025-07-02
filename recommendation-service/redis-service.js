@@ -30,12 +30,12 @@ const redisClient = createClient({
 // Manejar errores de Redis
 redisClient.on("error", (err) => console.error("❌ Redis Error:", err));
 
-// Configurar CORS
-//app.use(cors({
-//    origin: "*",
-//    methods: ["GET", "POST"],
-//    allowedHeaders: ["Content-Type", "Authorization"]
-//}));
+Configurar CORS
+app.use(cors({
+    origin: "*",
+    methods: ["GET", "POST"],
+    allowedHeaders: ["Content-Type", "Authorization"]
+}));
 
 app.use(express.json());
 
