@@ -22,7 +22,7 @@ chats_collection = db["chats"]
 SECRET_KEY = os.getenv("SECRET_KEY")
 
 # URL del servicio de búsqueda de usuarios (user-search-service)
-USER_SEARCH_URL = "http://54.90.161.226/user-search/user/soap"
+USER_SEARCH_URL = "http://34.193.65.142:5016/user/soap"
 
 app = FastAPI()
 
@@ -35,7 +35,15 @@ async def get_chat_id(user1: str, user2: str) -> str:
     return f"{users[0]}_{users[1]}"
 
 def user_exists(username: str) -> bool:
-    return True  # 🔄 Solo para debug temporal
+    """ Verifica si un usuario existe consultando el servicio SOAP de búsqueda de usuarios """
+    # Realizar la solicitud SOAP
+    response = requests.get(USER_SEARCH_URL, params={"username": username})
+
+    # Si la respuesta no es exitosa o no se encuentra el usuario, retornar False
+    if response.status_code != 200 or "Usuario no encontrado" in response.text:
+        return False
+
+    return True
 
 @app.websocket("/ws/{user1}/{user2}")
 async def websocket_endpoint(websocket: WebSocket, user1: str, user2: str):
