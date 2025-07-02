@@ -101,7 +101,7 @@ func main() {
 
 	fmt.Println("🚀 Microservicio de búsqueda iniciado en puerto 5005...")
 	// Use the router directly without CORS
-	log.Fatal(http.ListenAndServe("0.0.0.0:5005", r))
+	log.Fatal(http.ListenAndServe("0.0.0.0:5005", corsHandler.Handler(r)))
 	// To use CORS, uncomment the following line and comment out the one above:
 	// log.Fatal(http.ListenAndServe("0.0.0.0:5005", corsHandler.Handler(r)))
 }
