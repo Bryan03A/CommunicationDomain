@@ -2,7 +2,6 @@ require("dotenv").config(); // ✅ Cargar variables del .env
 
 const express = require("express");
 const { createClient } = require("redis");
-//const cors = require("cors");
 
 const app = express();
 const port = 5006;
@@ -29,13 +28,6 @@ const redisClient = createClient({
 
 // Manejar errores de Redis
 redisClient.on("error", (err) => console.error("❌ Redis Error:", err));
-
-Configurar CORS
-app.use(cors({
-    origin: "*",
-    methods: ["GET", "POST"],
-    allowedHeaders: ["Content-Type", "Authorization"]
-}));
 
 app.use(express.json());
 
