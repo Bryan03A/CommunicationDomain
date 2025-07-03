@@ -10,7 +10,6 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
-	// "github.com/rs/cors"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -20,9 +19,19 @@ import (
 var mongoClient *mongo.Client
 var modelsCollection *mongo.Collection
 
+// Middleware CORS sin encabezados, solo responde a OPTIONS
+func corsPassthroughMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
 // Configurar conexión a MongoDB
 func init() {
-	// Cargar archivo .env
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatalf("❌ Error cargando archivo .env: %v", err)
@@ -33,23 +42,20 @@ func init() {
 		log.Fatal("❌ MONGO_URI no definido en .env")
 	}
 
-	// Conectar a MongoDB
 	mongoClient, err = mongo.Connect(context.Background(), options.Client().ApplyURI(mongoURI))
 	if err != nil {
 		log.Fatalf("❌ Error al conectar a MongoDB: %v", err)
 	}
 
-	// Verificar la conexión
 	if err := mongoClient.Ping(context.Background(), readpref.Primary()); err != nil {
 		log.Fatalf("❌ Error de ping a MongoDB: %v", err)
 	}
 
-	// Conectar a la colección 'models'
 	modelsCollection = mongoClient.Database("CatalogServiceDB").Collection("models")
 	log.Println("✅ Conectado a MongoDB correctamente")
 }
 
-// searchModelHandler maneja la búsqueda de modelos en MongoDBa
+// searchModelHandler maneja la búsqueda de modelos en MongoDB
 func searchModelHandler(w http.ResponseWriter, r *http.Request) {
 	queryParams := r.URL.Query()
 	name := queryParams.Get("name")
@@ -88,20 +94,11 @@ func searchModelHandler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	r := mux.NewRouter()
-	r.HandleFunc("/search", searchModelHandler).Methods("GET")
-	
-	/*
-	corsHandler := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://3.227.120.143:8080"},
-		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE"},
-		AllowedHeaders:   []string{"Content-Type"},
-		AllowCredentials: true,
-	})
-	*/
+	r.HandleFunc("/search", searchModelHandler).Methods("GET", "OPTIONS") // OJO: incluir OPTIONS
+
+	// Envolver router con middleware de CORS vacío (solo permite preflight sin headers)
+	handler := corsPassthroughMiddleware(r)
 
 	fmt.Println("🚀 Microservicio de búsqueda iniciado en puerto 5005...")
-	// Use the router directly without CORS
-	log.Fatal(http.ListenAndServe("0.0.0.0:5005", r))
-	// To use CORS, uncomment the following line and comment out the one above:
-	// log.Fatal(http.ListenAndServe("0.0.0.0:5005", corsHandler.Handler(r)))
+	log.Fatal(http.ListenAndServe("0.0.0.0:5005", handler))
 }
