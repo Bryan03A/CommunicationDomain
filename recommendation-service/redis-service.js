@@ -1,22 +1,17 @@
-require("dotenv").config(); // ✅ Cargar variables del .env
-
 const express = require("express");
 const { createClient } = require("redis");
 
 const app = express();
 const port = 5006;
 
-// Configurar Redis desde .env
 const redisClient = createClient({
-    username: process.env.REDIS_USERNAME || undefined,
-    password: process.env.REDIS_PASSWORD || undefined,
     socket: {
-        host: process.env.REDIS_HOST,
-        port: Number(process.env.REDIS_PORT)
-    }
+        host: "35.168.99.213",
+        port: 6379
+    },
+    password: "ADMIN123"
 });
 
-// Conectar a Redis
 (async () => {
     try {
         await redisClient.connect();
@@ -26,17 +21,16 @@ const redisClient = createClient({
     }
 })();
 
-// Manejar errores de Redis
 redisClient.on("error", (err) => console.error("❌ Redis Error:", err));
 
 app.use(express.json());
 
-// Health Check
+// Ruta de Health Check
 app.get("/health", (req, res) => {
     res.status(200).send("Healthy");
 });
 
-// Guardar búsqueda
+// Guardar búsqueda en Redis para un usuario específico
 app.post("/save-search", async (req, res) => {
     const { query, creator, username, firstModelName } = req.body;
 
@@ -61,7 +55,7 @@ app.post("/save-search", async (req, res) => {
     }
 });
 
-// Obtener búsquedas recientes
+// Obtener las últimas búsquedas guardadas en Redis para un usuario específico
 app.get("/recent-searches", async (req, res) => {
     const { username } = req.query;
 
@@ -81,7 +75,7 @@ app.get("/recent-searches", async (req, res) => {
     }
 });
 
-// Iniciar servidor
+// Iniciar el servidor en todas las interfaces
 app.listen(port, '0.0.0.0', () => {
-    console.log(`🚀 Servidor Redis-Service escuchando en http://0.0.0.0:${port}`);
+    console.log(`Servidor Redis-Service escuchando en http://0.0.0.0:${port}`);
 });
