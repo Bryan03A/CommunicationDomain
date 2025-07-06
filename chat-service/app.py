@@ -30,7 +30,7 @@ chats_collection = db["chats"]
 SECRET_KEY = os.getenv("SECRET_KEY")
 
 # URL del servicio de búsqueda de usuarios (user-search-service)
-USER_SEARCH_URL = "http://34.193.65.142:5016/user/soap"
+USER_SEARCH_URL = "http://3.224.44.87/user-soap/user/soap"
 
 app = FastAPI()
 

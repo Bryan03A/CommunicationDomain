@@ -6,7 +6,7 @@ const port = 5006;
 
 const redisClient = createClient({
     socket: {
-        host: "35.168.99.213",
+        host: "54.161.44.165",
         port: 6379
     },
     password: "ADMIN123"
