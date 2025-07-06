@@ -39,7 +39,7 @@ active_chats: Dict[str, List[WebSocket]] = {}
 
 async def get_chat_id(user1: str, user2: str) -> str:
     """ Devuelve el chat_id de una conversación entre user1 y user2 """
-    users = sorted([user1, user2])  # Para que el ID sea consistente
+    users = sorted([user1, user2])  # Para que el ID sea consistentea
     return f"{users[0]}_{users[1]}"
 
 def user_exists(username: str) -> bool:

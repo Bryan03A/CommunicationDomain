@@ -7,11 +7,12 @@ on:
       - test
 
 jobs:
-  deploy:
+  clone-and-deploy:
+    name: Clone, Build and Deploy Microservices
     runs-on: ubuntu-latest
 
     steps:
-      - name: Deploy via SSH
+      - name: SSH into EC2 and Deploy
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -21,24 +22,22 @@ jobs:
             REPO_CODE="https://github.com/Bryan03A/CommunicationDomain.git"
             REPO_ENVS="https://${{ secrets.ENV_REPO_TOKEN }}@github.com/Bryan03A/CommunicationDomain-envs.git"
 
-            mkdir -p ~/deploy-code
-            mkdir -p ~/deploy-envs
+            mkdir -p ~/deploy-code ~/deploy-envs
 
             cd ~/deploy-code
             if [ -d "CommunicationDomain" ]; then
               cd CommunicationDomain && git pull origin test && cd ..
             else
-              git clone -b test $REPO_CODE CommunicationDomain
+              git clone -b test "$REPO_CODE" CommunicationDomain
             fi
 
             cd ~/deploy-envs
             if [ -d "CommunicationDomain-envs" ]; then
               cd CommunicationDomain-envs && git pull origin main && cd ..
             else
-              git clone $REPO_ENVS
+              git clone "$REPO_ENVS"
             fi
 
-            # Copiar los .env al código
             if [ -d ~/deploy-envs/CommunicationDomain-envs/CommunicationDomain ]; then
               shopt -s dotglob
               cp -r -f ~/deploy-envs/CommunicationDomain-envs/CommunicationDomain/* ~/deploy-code/CommunicationDomain/
@@ -49,20 +48,36 @@ jobs:
             docker network inspect app-network >/dev/null 2>&1 || docker network create app-network
 
             cd ~/deploy-code/CommunicationDomain
-
             for dir in */ ; do
               service=$(basename "$dir")
               if [ -f "$dir/Dockerfile" ]; then
-                echo "Procesando $service..."
+                echo "⚙️ Processing $service ..."
                 docker build -t bfury0329/${service}:latest "./$dir"
                 docker push bfury0329/${service}:latest
                 docker rm -f "${service}" 2>/dev/null || true
 
-                port=$(grep -i '^EXPOSE' "$dir/Dockerfile" | head -n 1 | awk '{print $2}')
-                if [ -z "$port" ]; then
-                  port=7000
-                fi
-
+                port=$(grep -i '^EXPOSE' "$dir/Dockerfile" | head -n1 | awk '{print $2}')
+                [ -z "$port" ] && port=7000
                 docker run -d --name "${service}" --network app-network -p ${port}:${port} bfury0329/${service}:latest
               fi
             done
+
+  cleanup:
+    name: Cleanup Temporary Folders and Dangling Docker Images
+    runs-on: ubuntu-latest
+    needs: clone-and-deploy
+
+    steps:
+      - name: SSH and Clean Temporary Directories and Docker Images
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            echo "🧹 Cleaning up temporary deployment folders..."
+            rm -rf ~/deploy-code ~/deploy-envs
+            echo "✅ Folders cleaned."
+            echo "🧽 Removing dangling Docker images..."
+            docker rmi $(docker images -f "dangling=true" -q) 2>/dev/null || echo "No dangling images to remove."
+            echo "✅ Docker cleanup complete."
