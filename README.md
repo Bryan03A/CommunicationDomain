@@ -73,3 +73,35 @@
 - &nbsp; - Handles Redis connection lifecycle and errors robustly
 - &nbsp; - List-based storage allows efficient insertion and retrieval of recent search data
 - &nbsp; - Suitable for caching and fast retrieval use cases with minimal latency
+
+## 🔟 **Model Search Service** (Go / Gorilla Mux / MongoDB)
+- **🧠 Purpose**: Provides a REST API to search models stored in MongoDB by name and/or creator fields with flexible regex matching.
+- **🧪 Port**: `5005`
+- **🧰 Tech Stack**:
+- &nbsp; - Language: Go
+- &nbsp; - Framework: Gorilla Mux (HTTP router)
+- &nbsp; - DB: MongoDB (official Go driver)
+- **🛢️ Database**:
+- &nbsp; - Type: NoSQL document store
+- &nbsp; - Engine: MongoDB
+- &nbsp; - Collection: `models` within database `CatalogServiceDB`
+- &nbsp; - Queries use regex for case-insensitive partial matching on `name` and `created_by` fields
+- **🔐 Security**:
+- &nbsp; - Basic input validation for query parameters
+- &nbsp; - Environment-configured MongoDB connection string stored in `.env` file
+- **📡 Communication**: REST (JSON)
+- &nbsp; - Endpoint exposes GET `/search` with optional query parameters `name` and `created_by`
+- **🌍 Endpoints**:
+- &nbsp; - `GET /search?name={name}&created_by={creator}` — Searches for models filtered by name and/or creator with partial case-insensitive matching
+- **🎨 Design Pattern**: Clean separation between configuration (`init`), request handling (handler function), and data access (MongoDB queries)
+- **🏗️ Architecture**: Minimal layered design
+- &nbsp; - Initialization layer handles config loading and DB connection
+- &nbsp; - HTTP layer handles routing and request parsing
+- &nbsp; - Data access encapsulated in MongoDB query calls inside handler
+- **🛠️ Notes**:
+- &nbsp; - Uses `godotenv` to load environment variables from `.env` file
+- &nbsp; - Validates MongoDB connection at startup via Ping
+- &nbsp; - Returns empty JSON array if no filters provided or no results found
+- &nbsp; - Logs fatal errors on startup failures to avoid running with broken dependencies
+
+---
